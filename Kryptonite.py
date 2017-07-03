@@ -336,20 +336,20 @@ parent.config(menu=menubar)
 
 # File menu
 fileMenu = Menu(menubar,tearoff=0)
-fileMenu.add_command(label='New',accelerator="Ctrl+N",command=newFile)
-fileMenu.add_command(label='Open...',accelerator="Ctrl+O",command=openDialog)
-fileMenu.add_command(label='Save',accelerator="Ctrl+S",command=saveFile)
+fileMenu.add_command(label='New',command=newFile)
+fileMenu.add_command(label='Open...',command=openDialog)
+fileMenu.add_command(label='Save',command=saveFile)
 fileMenu.add_command(label='Save As...',command=saveFileAs)
 fileMenu.add_separator()
-fileMenu.add_command(label='Quit',accelerator="Ctrl+Q",command=quit)
+fileMenu.add_command(label='Quit',command=quit)
 menubar.add_cascade(label='File',menu=fileMenu)
 
 # Edit menu
 editMenu = Menu(menubar,tearoff=0)
-editMenu.add_command(label='Undo',accelerator="Ctrl+Z",command=undo)
-editMenu.add_command(label='Select All',accelerator="Ctrl+A",command=selectAll)
-editMenu.add_command(label='Find...',accelerator="Ctrl+F",command=find)
-editMenu.add_command(label='Find Next',accelerator="F3",command=findNext)
+editMenu.add_command(label='Undo',command=undo)
+editMenu.add_command(label='Select All',command=selectAll)
+editMenu.add_command(label='Find...',command=find)
+editMenu.add_command(label='Find Next',command=findNext)
 editMenu.add_command(label='Change Password...',command=setPass)
 menubar.add_cascade(label='Edit',menu=editMenu)
 
@@ -358,26 +358,7 @@ helpMenu = Menu(menubar,tearoff=0)
 helpMenu.add_command(label='About Kryptonite',command=about)
 menubar.add_cascade(label='?',menu=helpMenu)
 
-# Define windows shortcuts
-parent.bind_all('<Control-n>',newFile)
-parent.bind_all('<Control-o>',openDialog)
-parent.bind_all('<Control-s>',saveFile)
-parent.bind_all('<Control-q>',quit)
-parent.bind_all('<Control-z>',undo)
-parent.bind_all('<Control-a>',selectAll)
-parent.bind_all('<Control-f>',find)
-
-# Define MacOSX shortcuts
-parent.bind_all('<Command-n>',newFile)
-parent.bind_all('<Command-o>',openDialog)
-parent.bind_all('<Command-s>',saveFile)
-parent.bind_all('<Command-q>',quit)
-parent.bind_all('<Command-z>',undo)
-parent.bind_all('<Command-a>',selectAll)
-parent.bind_all('<Command-f>',find)
-
 # General bindings
-parent.bind_all('<F3>',findNext)
 parent.bind_all('<Key>',resetTimeout)     # If any key is pressed
 
 # Define protocol

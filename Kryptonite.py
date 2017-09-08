@@ -248,7 +248,6 @@ def callDialog(title,button,stringVar,showStr,function):
 	dialog.resizable(width=FALSE, height=FALSE)
 	dialog.transient(parent) # Put window always on front of parent
 	dialog.grab_set()
-	dialog.bind_all('<Return>',function)
 	dialog.protocol("WM_DELETE_WINDOW",lambda:[stringVar.set(oldEntry),closeDiag()])
 	
 	# Create field and button

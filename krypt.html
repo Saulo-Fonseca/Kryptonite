@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!--
+	Author: Saulo Fonseca <saulo@astrotown.de>
+	Description: Kryptonite - The cryptographic text editor
+!-->
+<html>
+	<head>
+		<style>
+			div
+			{
+				text-align: center;
+				padding: 5px;
+			}
+			#title
+			{
+				font-size: medium;
+				font-weight: bold;
+			}
+			#subTitle
+			{
+				font-size: small;
+			}
+		</style>
+		<script>
+			// Global var
+			var fileName;
+			var password;
+			
+			// Detect file over dropzone
+			function dragOverEvent(evt)
+			{
+				// Initialize
+				evt.stopPropagation();
+				evt.preventDefault();
+				evt.dataTransfer.dropEffect = 'copy';
+			}
+
+			// Get dropped file
+			function dropEvent(evt)
+			{
+				// Initialize
+				evt.stopPropagation();
+				evt.preventDefault();
+				
+				// Read file
+				var list = evt.dataTransfer.files;
+				var file = list[0];
+				
+				// Define password
+				password = undefined;
+				changePass();
+				
+				// Send file to textarea
+				var reader = new FileReader();
+				reader.onloadend = function(evt)
+				{
+					if (evt.target.readyState == FileReader.DONE)
+					{
+						// Start async chain
+						sha512(new TextEncoder('utf-8').encode(password)).then(
+							array => krypt(evt.target.result,array)).then(
+								array => newFile(new TextDecoder('utf-8').decode(new Uint8Array(array)),file.name));
+					}
+				}
+				reader.readAsArrayBuffer(file);
+			}
+			
+			// New file
+			function newFile(content, file = null)
+			{
+				// If really a new file
+				if (file === null)
+				{
+					 file = 'newFile.krypt';
+					 password = undefined;
+				}
+			
+				// Put text in area
+				document.getElementById('contents').value = content;
+				
+				// Show the name of the file
+				fileName = file;
+				document.getElementById('subTitle').textContent  = fileName;
+			}
+
+			// Prepare to download
+			function preDownload()
+			{
+				// Check contents
+				var text = document.getElementById('contents').value;
+				if (text.length === 0)
+				{
+					window.alert("Please create a new file or drop an existing one on the box");
+				}
+				else
+				{
+					// Check if password is defined
+					if (typeof password == 'undefined')
+					{
+						changePass();
+					}
+					var utf8pass = new TextEncoder('utf-8').encode(password);
+					var utf8text = new TextEncoder('utf-8').encode(text);
+
+					// Start async chain
+					sha512(utf8pass).then(
+						array => krypt(utf8text,array)).then(
+							array => download(array));
+				}
+			}
+			
+			// Change current password
+			function changePass()
+			{
+				// Force user to give a not empty password
+				var newPasswd = null;
+				while (newPasswd === null || newPasswd === '')
+				{
+					newPasswd = prompt("Password?",password);
+				}
+				password = newPasswd;
+			}
+
+			// Return an array of integers as SHA-512 of a string
+			async function sha512(str)
+			{
+				var digest = await crypto.subtle.digest('SHA-512', str);
+				var array = Array.from(new Uint8Array(digest));
+				return array;
+			}
+			
+			// Kryptonite main function
+			async function krypt(content,digest)
+			{
+				// Define digestLen to an unexpected value
+				var sumPass = 0;
+				for (var i=0; i<password.length; i++)
+				{
+					sumPass += password.charCodeAt(i);
+				}
+				var digestLen = digest.length/2;
+				digestLen += sumPass % digestLen; // Will vary from 32 to 64 bytes
+
+				// Xor each byte of both digest and income string up to digestLen
+				// Repeat cropped digest up to income string length
+				var byteContent = new Uint8Array(content);
+				var count = 0;
+				var array = [];
+				for (var i=0; i<byteContent.length; i++)
+				{
+					xor = byteContent[i] ^ digest[count];
+					array.push(xor);
+					count++;
+					if (count == digestLen)
+					{
+						count = 0;
+					}
+				}
+				return array;
+			}	
+			
+			// Download encrypted version of contents
+			function download(array)
+			{
+				var byteArray = new Uint8Array(array);
+				var blob = new Blob([byteArray], {type: "application/octet-stream"});
+				var a = document.createElement("a");
+				a.style = "display: none";
+				a.href = window.URL.createObjectURL(blob);
+				a.download = fileName;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+			}
+		</script>
+	</head>
+	<body>
+		<div id="title">
+			Kryptonite
+		</div>
+		<div id="subTitle">
+			The Cryptographic Text Editor
+			<br>
+			by Saulo Fonseca
+		</div>
+		<div>
+			<button onclick="newFile('Write encrypted text here')">New</button>
+			<button onclick="changePass()">Change Passwd</button>
+			<button onclick="preDownload()">Download</button>
+		</div>
+		<div>
+			<textarea id="contents" placeholder="Drop a krypt file here" rows="40" cols="80"></textarea>
+		</div>
+		<script>
+			// Check if using SSL
+			if (location.protocol != 'https:')
+			{
+				location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+			}
+
+			// Initialize dropzone
+			var dropzone = document.getElementById('contents');
+			dropzone.addEventListener('dragover', dragOverEvent);
+			dropzone.addEventListener('drop', dropEvent);
+		</script>
+	</body>
+</html>
